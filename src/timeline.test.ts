@@ -57,3 +57,10 @@ test('day text is fully editable, including empty content, and old notes are pre
  assert.equal(inserted,'Breakfast\nMoscow: arrival at 07:00\nHotel\nMoscow: departure at 12:00');
  assert.equal(insertFlightInfo(inserted,[...lines,'Moscow: departure at 12:00']),inserted);
 });
+test('a westbound date-line crossing reserves its arrival day as well as its departure day',()=>{
+ const westbound=ticket('2026-12-31T02:00','2026-12-30T14:00');
+ Object.assign(westbound.segments[0],{departureOffset:'+09:00',arrivalOffset:'-10:00'});
+ const independent=ticket('2026-12-30T07:00','2026-12-30T09:00');
+ const layout=layoutTickets([westbound,independent]);
+ assert.equal(layout.laneCount,2);assert.notEqual(layout.flights[0].lane,layout.flights[1].lane);assert.deepEqual(layout.connections,[]);
+});

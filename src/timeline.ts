@@ -6,7 +6,7 @@ export function layoutTickets(tickets:Ticket[]){
  const laneEnds:number[]=[];
  const groups=tickets.map(t=>{
   const complete=t.segments.filter(s=>times(s).every(Number.isFinite));
-  return {t,complete,start:Math.floor(Math.min(...complete.map(s=>boardTimes(s)[0]))/DAY)*DAY,end:Math.ceil(Math.max(...complete.flatMap(boardTimes))/DAY)*DAY};
+  return {t,complete,start:Math.floor(Math.min(...complete.flatMap(boardTimes))/DAY)*DAY,end:Math.ceil(Math.max(...complete.flatMap(boardTimes))/DAY)*DAY};
  }).filter(g=>g.complete.length).sort((a,b)=>a.start-b.start);
  for(const {t,complete,start,end} of groups){
   let lane=laneEnds.findIndex(last=>last<=start);

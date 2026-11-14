@@ -36,3 +36,19 @@ test('early local departures do not draw on the previous UTC day and elapsed dur
   assert.equal($('.day-note-box textarea').first().text(),'');assert.match($('.day-note-box textarea').last().text(),/departure at 02:00/);
  }finally{await server.close();}
 });
+test('westbound flights span both local endpoints and point towards the earlier arrival clock',async()=>{
+ const server=await createServer({configFile:false,server:{middlewareMode:true,ws:false},appType:'custom'});
+ try{
+  const {DayTimeline}=await server.ssrLoadModule('/src/DayTimeline.tsx');
+  for(const [departure,arrival,left,width] of [['2026-12-30T20:00','2026-12-30T08:00',160,240],['2026-12-31T02:00','2026-12-30T14:00',280,240]]){
+   const t=ticket('westbound',departure,arrival);Object.assign(t.segments[0],{from:'HND · Tokyo',to:'HNL · Honolulu',departureOffset:'+09:00',arrivalOffset:'-10:00'});
+   const html=renderToStaticMarkup(React.createElement(DayTimeline,{tickets:[t],start,days:2,dayWidth:480,color:0,onOpen(){},onNoteChange(){}}));
+   const $=load(html),box=$('.flight-box');
+   assert.equal(Number.parseFloat(box.attr('style').split('left:')[1]),left);
+   assert.equal(Number.parseFloat(box.attr('style').split('width:')[1]),width);
+   assert.match(box.text(),/^←/);assert.match(box.attr('title'),/7h 0m/);assert.match(box.attr('title'),/earlier local/);
+   assert.match($(`textarea[aria-label="Notes for ${departure.slice(0,10)}"]`).text(),/Tokyo: departure/);
+   assert.match($(`textarea[aria-label="Notes for ${arrival.slice(0,10)}"]`).text(),/Honolulu: arrival/);
+  }
+ }finally{await server.close();}
+});
