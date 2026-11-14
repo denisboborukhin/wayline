@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
-    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "test": "node --experimental-strip-types --test src/*.test.ts server/*.test.mjs",
     "setup:scraper": "playwright install chromium",
     "start": "vite preview --host 127.0.0.1 --port 5173"
   },
