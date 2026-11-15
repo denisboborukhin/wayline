@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Wayline flight capture",
+  "version": "1.0.0",
+  "description": "Copy a Trip.com itinerary into Wayline without a scraper server.",
+  "permissions": ["activeTab", "scripting", "clipboardWrite"],
+  "action": {
+    "default_title": "Copy itinerary to Wayline",
+    "default_popup": "popup.html"
+  }
+}

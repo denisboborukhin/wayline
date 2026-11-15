@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Wayline flight capture</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+<header><strong>wayline</strong><span>Flight capture</span></header>
+<main>
+ <p>Expand the itinerary on Trip.com. Review the flight details below before copying.</p>
+ <p id="status" role="status">Reading the active tab…</p>
+ <section id="details" hidden>
+  <label>Itinerary<select id="itinerary"></select></label>
+  <label>Flight details<textarea id="preview" rows="12" readonly></textarea></label>
+  <label>Departure date<input id="date" type="date"></label>
+  <p class="hint">Add the date if the page omits its year. Prices from the link may have changed.</p>
+  <button id="copy" type="button">Copy itinerary</button>
+ </section>
+ <button id="retry" type="button">Read active tab again</button>
+ <p class="hint">In Wayline, add a ticket, paste into “Flight details or extension capture” and choose “Import details”. Nothing is sent to a server.</p>
+</main>
+<script type="module" src="popup.js"></script>
+</body></html>
