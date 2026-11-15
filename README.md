@@ -37,15 +37,23 @@ Dates appear once in the top ruler. Flight boxes align to each endpoint's local 
 
 ## Publishing and deployment
 
-This repository is a local-first prototype. Publishing its source on GitHub does not deploy the application. GitHub Actions runs installation, unit tests and builds on the minimum supported Node version and Node 24. A separate browser job installs Chromium and verifies extension capture and app integration against synthetic Trip.com pages; it does not contact Trip.com. Direct dependency versions are pinned; commit the lockfile when updating them.
+This repository is a local-first prototype. CI deploys the application to GitHub Pages after checks pass on the repository’s default branch. Pull requests and other branches run checks without deployment. GitHub Actions runs installation, unit tests and builds on the minimum supported Node version and Node 24. A separate browser job installs Chromium and verifies extension capture and app integration against synthetic Trip.com pages; it does not contact Trip.com. Direct dependency versions are pinned; commit the lockfile when updating them.
 
-The whole app can run on a static host, including GitHub Pages. Flight parsing, extension capture import, flight comparison and notes need no backend, public origin setting or server-side Chromium installation. For a GitHub Pages project named `travel_planner`, build with its project base path:
+The whole app can run on a static host, including GitHub Pages. Flight parsing, extension capture import, flight comparison and notes need no backend, public origin setting or server-side Chromium installation. The Pages workflow reads the base path from GitHub Pages configuration, supporting project sites and root/custom-domain sites. For a manual build of a GitHub Pages project named `travel_planner`, use its project base path:
 
 ```sh
 npm run build -- --base=/travel_planner/
 ```
 
-Publish the contents of `dist/` through your hosting provider. Install the extension separately from the source directory; it is not published in a browser store. No publishing or deployment workflow is enabled by this repository. Plans remain in the browser where they were entered; changing host or origin does not transfer existing localStorage data. The included Vite server is for local development and preview only ([Vite deployment guidance](https://vite.dev/guide/static-deploy.html)).
+To enable deployment after pushing the repository to GitHub:
+
+1. In **Settings → Pages → Build and deployment**, set **Source** to **GitHub Actions**.
+2. Push to the repository’s default branch, or run **CI** manually from the **Actions** tab with the default branch selected.
+3. Wait for the unit/build and browser jobs, then the Pages build and deploy jobs. The deployed URL appears in the `github-pages` environment and deployment step.
+
+Deployment uses GitHub’s built-in token with Pages and OIDC write permissions limited to the deploy job; no personal access token is required. In-progress deployments finish before the next deployment starts. Follow the [GitHub Pages workflow setup](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages) if repository or organization policies restrict Actions or the `github-pages` environment.
+
+For other static hosts, publish the contents of `dist/` yourself. Install the extension separately from the source directory; it is not published in a browser store. Plans remain in the browser where they were entered; changing host or origin does not transfer existing localStorage data. The included Vite server is for local development and preview only ([Vite deployment guidance](https://vite.dev/guide/static-deploy.html)).
 
 To run browser checks locally (Chromium is a development-only dependency):
 
