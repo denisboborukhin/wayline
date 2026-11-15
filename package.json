@@ -6,13 +6,11 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
-    "test": "node --experimental-strip-types --test src/*.test.ts server/*.test.mjs",
-    "setup:scraper": "playwright install chromium",
-    "start": "vite preview --host 127.0.0.1 --port 5173"
+    "test": "node --experimental-strip-types --test src/*.test.ts tests/*.test.mjs",
+    "start": "vite preview --host 127.0.0.1 --port 5173",
+    "test:browser": "node --experimental-strip-types --test tests/browser/*.test.mjs"
   },
   "dependencies": {
-    "cheerio": "1.2.0",
-    "playwright": "1.65.1",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
@@ -20,7 +18,9 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "typescript": "7.0.2",
-    "vite": "8.3.8"
+    "vite": "8.3.8",
+    "cheerio": "1.2.0",
+    "playwright": "1.65.1"
   },
   "license": "MIT",
   "engines": {

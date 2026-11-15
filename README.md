@@ -8,27 +8,26 @@ Requires Node.js 22.18+ (native TypeScript stripping).
 
 ```sh
 npm ci
-npm run setup:scraper
 npm run dev
 ```
 
-Open the local URL printed by Vite. `npm test` verifies the model, HTML parser, timezone/date calculations and endpoint restrictions. `npm run build` checks TypeScript and produces `dist/`. `npm start` previews the build locally with the import endpoint enabled. It is not a production server.
+Open the local URL printed by Vite. `npm test` verifies the model, import parser, timezone/date calculations and timeline. `npm run build` checks TypeScript and produces the static application in `dist/`. `npm start` previews that build locally; no scraper backend is required.
 
-## HTTPS imports
+## Import flights with the browser extension
 
-The import middleware checks the request Origin against the actual HTTP or HTTPS connection. Behind a TLS-terminating reverse proxy, set the public origin explicitly (scheme, hostname and optional port, with no path or trailing slash):
+Install the unpacked [Wayline flight capture extension](extension/README.md) in Chrome or Edge:
 
-```sh
-WAYLINE_ORIGIN=https://wayline.example npm start
-```
+1. Open `chrome://extensions` (Chrome) or `edge://extensions` (Edge), enable **Developer mode** and choose **Load unpacked**.
+2. Select the repository's `extension` directory containing `manifest.json`.
+3. On Trip.com, open your selected itinerary and expand all connecting flights, then click the extension icon.
+4. Select a summary if several are available, review the preview and departure date, then choose **Copy itinerary**.
+5. In Wayline, add a ticket, paste into **Flight details or extension capture** under **Import flight details**, then choose **Import details**. Review all flights and prices before saving.
 
-Keep the backend bound to loopback and have the proxy preserve the public host. Forwarded headers alone do not change the allowed origin. Other origins are rejected. This configures origin checking; it does not make the preview server production-ready.
+The capture includes flight-summary text, a departure date and a cleaned source link. Session and tracking parameters are removed. Route, date, currency and selected-price parameters are retained; the price is not refreshed. An existing manually entered price takes precedence over an imported price. The extension uses temporary active-tab access when you invoke it, does not access cookies or browser history, makes no network requests and does not store captures. Clipboard contents remain until replaced. Full permissions and privacy details are in the [extension README](extension/README.md#permissions-and-privacy).
 
-## Import flights
+The automatic selector supports the observed Russian Trip.com flight-summary layout. If a summary cannot be found, select only the expanded flight details on the page before invoking the extension. It never falls back to copying the whole page. If the page cannot show the itinerary, or your browser does not support this extension, paste the flight details manually or fill the ticket fields yourself. A URL is optional for pasted details. When the text omits the departure date or year, select it in Wayline before importing.
 
-Create an option, add a ticket, paste a Trip.com link and choose **Read site**. The server tries HTML parsing, then renders the page in an isolated anonymous Chromium instance to extract the flight-summary block. It does not connect to your signed-in Chrome profile or retain cookies, page HTML, passenger fields, or screenshots. Returned data contains only ticket/itinerary fields and the source URL. Scraping supports the observed Russian Trip.com itinerary layout; it is not a general flight-search API.
-
-Trip.com can block automated access, require a browser session, or expire passenger links. In that case the form keeps the departure date and selected price from the URL and explains the failure. Open the source page, expand the complete itinerary, copy **only the flight details** (airport codes, flight numbers, dates, times and durations), and paste them under **Paste flight details**. Choose **Parse flight details**, review all flights, then save. A URL is optional for pasted details. The parser reads a full departure date from the text; when the text omits the date or year, select the departure date in the paste section. You can also complete fields manually.
+**Read link** reads only information encoded in a pasted URL, such as route, departure date and selected price. It cannot retrieve exact flight times from the site. The old server scraper and `/api/import-flight` endpoint have been removed.
 
 Local times are converted using an airport/IANA timezone dataset. Explicit next-day labels are read from the page; otherwise dates advance to the next chronological local day. Flight and total durations are cross-checked when present. Ambiguous daylight-saving times, unknown airports, mismatched durations and incomplete flight pairs require manual correction. Always review imported dates, UTC offsets and prices before saving. URL prices are selected fares, not refreshed quotes.
 
@@ -38,21 +37,27 @@ Dates appear once in the top ruler. Flight boxes align to each endpoint's local 
 
 ## Publishing and deployment
 
-This repository is a local-first prototype. Publishing its source on GitHub does not deploy the application. GitHub Actions runs `npm ci`, `npm test` and `npm run build` on pushes and pull requests, using the minimum supported Node version and Node 24. Direct dependency versions are pinned; commit the lockfile when updating them. CI tests parsers and endpoint checks without calling Trip.com or downloading Chromium.
+This repository is a local-first prototype. Publishing its source on GitHub does not deploy the application. GitHub Actions runs installation, unit tests and builds on the minimum supported Node version and Node 24. A separate browser job installs Chromium and verifies extension capture and app integration against synthetic Trip.com pages; it does not contact Trip.com. Direct dependency versions are pinned; commit the lockfile when updating them.
 
-A static host, including GitHub Pages, can serve `dist/` for flight comparison, manual/pasted import and day notes. It cannot run **Read site**, which needs the Node middleware and a Playwright browser. On a static host, use pasted details or manual entry when site import fails. For a GitHub Pages project named `travel_planner`, build with its project base path:
+The whole app can run on a static host, including GitHub Pages. Flight parsing, extension capture import, flight comparison and notes need no backend, public origin setting or server-side Chromium installation. For a GitHub Pages project named `travel_planner`, build with its project base path:
 
 ```sh
 npm run build -- --base=/travel_planner/
 ```
 
-Publish the contents of `dist/` through your hosting provider. No publishing or deployment workflow is enabled by this repository. Plans remain in the browser where they were entered; changing host or origin does not transfer existing localStorage data.
+Publish the contents of `dist/` through your hosting provider. Install the extension separately from the source directory; it is not published in a browser store. No publishing or deployment workflow is enabled by this repository. Plans remain in the browser where they were entered; changing host or origin does not transfer existing localStorage data. The included Vite server is for local development and preview only ([Vite deployment guidance](https://vite.dev/guide/static-deploy.html)).
 
-For a hosted scraper, integrate `importMiddleware` into a production Node server at `/api/import-flight`, install Chromium and its system dependencies, and configure the public HTTPS origin as described above. Apply deployment-specific access and resource controls before exposing browser scraping to the internet. The included Vite server is for local development and preview only ([Vite deployment guidance](https://vite.dev/guide/static-deploy.html)).
+To run browser checks locally (Chromium is a development-only dependency):
+
+```sh
+npx playwright install chromium
+npm run build
+npm run test:browser
+```
 
 ## Verification limits
 
-The flight-only fixture in `src/fixtures/trip-itinerary.txt` was transcribed from the expanded Trip.com itinerary and validates the three-flight Chongqing–Shanghai Pudong–Tbilisi–Yerevan journey on December 30–31, 2026. Live anonymous scraping of that link did not succeed in this environment; signed-in browser visibility does not imply the anonymous scraper can read the same page. The manual parser handles the observed itinerary. Future site markup changes may require parser updates.
+The flight-only fixture in `src/fixtures/trip-itinerary.txt` was transcribed from the expanded Trip.com itinerary and validates the three-flight Chongqing–Shanghai Pudong–Tbilisi–Yerevan journey on December 30–31, 2026. The extension and clipboard flow are verified against synthetic pages using this fixture. Live Trip.com markup and access can vary; a future layout change may require selector or parser updates. Manual paste remains available.
 
 Airport dataset attribution and license: [THIRD_PARTY.md](THIRD_PARTY.md).
 
@@ -60,7 +65,7 @@ Airport dataset attribution and license: [THIRD_PARTY.md](THIRD_PARTY.md).
 
 Wayline was developed with substantial AI assistance, including implementation, interface design, documentation, tests and code review. The project owner directed the requirements and design decisions. Verification included automated tests, TypeScript/build checks and browser checks; known limitations are documented above.
 
-The application does not call AI models at runtime. Flight imports use URL parsing, rule-based itinerary parsing and optional browser scraping, without sending itinerary data to an AI service.
+The application does not call AI models at runtime. Flight imports use URL parsing, rule-based itinerary parsing and user-invoked browser-extension capture, without sending itinerary data to an AI service.
 
 ## License
 
