@@ -56,6 +56,12 @@ The flight-only fixture in `src/fixtures/trip-itinerary.txt` was transcribed fro
 
 Airport dataset attribution and license: [THIRD_PARTY.md](THIRD_PARTY.md).
 
+## AI usage
+
+Wayline was developed with substantial AI assistance, including implementation, interface design, documentation, tests and code review. The project owner directed the requirements and design decisions. Verification included automated tests, TypeScript/build checks and browser checks; known limitations are documented above.
+
+The application does not call AI models at runtime. Flight imports use URL parsing, rule-based itinerary parsing and optional browser scraping, without sending itinerary data to an AI service.
+
 ## License
 
 Application code is licensed under the [MIT License](LICENSE). Airport data retains its separate MIT copyright notice in [THIRD_PARTY.md](THIRD_PARTY.md).
