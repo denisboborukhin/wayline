@@ -44,15 +44,20 @@ export async function scrape(raw){
   throw Error(`Trip.com could not be read automatically${reason?` (${reason})`:status?` (HTTP ${status})`:''}. The page may be blocked, expired, or require a session. Open the source, expand the itinerary, and paste only the flight details below.`);
  }finally{await browser?.close();}
 }
-export function importMiddleware(){
+export function importMiddleware({origin}={}){
+ if(origin){
+  const url=new URL(origin);
+  if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)throw Error('WAYLINE_ORIGIN must be an HTTP(S) origin without a path or credentials.');
+ }
  let active=false;
  return async(req,res,next)=>{
   if(req.url!=='/api/import-flight')return next();
   res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');
   const reply=(status,body)=>{res.statusCode=status;res.end(JSON.stringify(body));};
   if(req.method!=='POST')return reply(405,{error:'Use POST.'});
-  // Same-origin local endpoint; never serves as a general URL proxy.
-  if(req.headers.origin&&req.headers.origin!==`http://${req.headers.host}`)return reply(403,{error:'Use the local Wayline page.'});
+  // Reverse proxies use an explicit origin, never untrusted forwarding headers.
+  const expectedOrigin=origin||`${req.socket?.encrypted?'https':'http'}://${req.headers.host}`;
+  if(req.headers.origin&&req.headers.origin!==expectedOrigin)return reply(403,{error:'Use the Wayline page on the same origin.'});
   if(active)return reply(429,{error:'Another import is in progress. Please retry shortly.'});
   let body='';
   try{

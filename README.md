@@ -14,6 +14,16 @@ npm run dev
 
 Open the local URL printed by Vite. `npm test` verifies the model, HTML parser, timezone/date calculations and endpoint restrictions. `npm run build` checks TypeScript and produces `dist/`. `npm start` serves the build with the import endpoint enabled. A plain static file host cannot run the server scraper.
 
+## HTTPS imports
+
+The import middleware checks the request Origin against the actual HTTP or HTTPS connection. Behind a TLS-terminating reverse proxy, set the public origin explicitly (scheme, hostname and optional port, with no path or trailing slash):
+
+```sh
+WAYLINE_ORIGIN=https://wayline.example npm start
+```
+
+Keep the backend bound to loopback and have the proxy preserve the public host. Forwarded headers alone do not change the allowed origin. Other origins are rejected. This configures origin checking; it does not make the preview server production-ready.
+
 ## Import flights
 
 Create an option, add a ticket, paste a Trip.com link and choose **Read site**. The server tries HTML parsing, then renders the page in an isolated anonymous Chromium instance to extract the flight-summary block. It does not connect to your signed-in Chrome profile or retain cookies, page HTML, passenger fields, or screenshots. Returned data contains only ticket/itinerary fields and the source URL. Scraping supports the observed Russian Trip.com itinerary layout; it is not a general flight-search API.
