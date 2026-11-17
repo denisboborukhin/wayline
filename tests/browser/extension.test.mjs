@@ -95,6 +95,58 @@ test('installed extension and static planner import without a scraper backend',{
    await app.getByRole('button',{name:'Close editor',exact:true}).click();
    assert.ok(!requests.some(url=>url.includes('/api/')));assert.deepEqual(browserErrors,[]);
   });
+  await t.test('calendar wraps seven days, splits a flight across rows and shares saved notes with the timeline',async()=>{
+   const app=await context.newPage();
+   const origin=`http://127.0.0.1:${server.address().port}`;
+   await app.setViewportSize({width:1440,height:1000});
+   await app.goto(origin);
+   await app.evaluate(()=>{
+    const ticket=(id,departure,arrival)=>({id,url:'',price:'100',currency:'RUB',segments:[{
+     id,from:'TBS',to:'EVN',flight:id,departure,arrival,departureOffset:'+00:00',arrivalOffset:'+00:00',
+    }]});
+    localStorage.removeItem('wayline.view');
+    localStorage.setItem('wayline.v1',JSON.stringify([{id:'trip',name:'Trip',tickets:[
+     ticket('FIRST','2026-12-21T10:00','2026-12-21T11:00'),
+     ticket('OVERNIGHT','2026-12-27T23:00','2026-12-28T02:00'),
+    ]}]));
+   });
+   await app.reload();
+   const toggle=app.getByRole('button',{name:'Calendar view',exact:true});
+   const rows=app.locator('.board-row');
+   const dates=()=>rows.evaluateAll(elements=>elements.map(row=>[...row.querySelectorAll('.day-header strong')].map(day=>day.textContent)));
+   assert.equal(await toggle.getAttribute('aria-pressed'),'false');
+   assert.equal(await rows.count(),1);
+   await toggle.click();
+   assert.deepEqual(await dates(),[['Dec 21','Dec 22','Dec 23','Dec 24','Dec 25','Dec 26','Dec 27'],['Dec 28','Dec 29']]);
+   assert.deepEqual(await rows.evaluateAll(elements=>elements.map(row=>row.querySelectorAll('.day-note-box').length)),[7,2]);
+   assert.ok(await app.locator('.scroll').evaluate(element=>element.scrollWidth===element.clientWidth));
+   const overnight=app.getByRole('button',{name:/^OVERNIGHT:/});
+   assert.equal(await overnight.count(),2);
+   const [first,second]=await overnight.evaluateAll(buttons=>buttons.map(button=>{
+    const box=button.getBoundingClientRect(),track=button.parentElement.getBoundingClientRect();
+    return {fromLeft:box.left-track.left,toRight:track.right-box.right,width:box.width};
+   }));
+   assert.ok(Math.abs(first.toRight)<1&&Math.abs(second.fromLeft)<1&&Math.abs(2*first.width-second.width)<1);
+   await overnight.last().click();
+   assert.equal(await app.getByLabel('Flight number').inputValue(),'OVERNIGHT');
+   await app.getByRole('button',{name:'Close editor',exact:true}).click();
+   const note=app.getByRole('textbox',{name:'Notes for 2026-12-28'});
+   await note.fill('Hotel check-in');
+   await app.reload();
+   assert.equal(await toggle.getAttribute('aria-pressed'),'true');
+   assert.equal(await note.inputValue(),'Hotel check-in');
+
+   await app.setViewportSize({width:390,height:844});
+   assert.ok(await app.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+   assert.ok(await app.locator('.scroll').evaluate(element=>element.scrollWidth>element.clientWidth));
+   assert.equal((await dates())[0].length,7);
+   await toggle.click();
+   assert.equal(await rows.count(),1);
+   assert.equal(await overnight.count(),1);
+   assert.equal(await note.inputValue(),'Hotel check-in');
+   assert.deepEqual(browserErrors,[]);
+   await app.close();
+  });
  }finally{
   await context.close();if(server)await new Promise(resolve=>server.close(resolve));await rm(profile,{recursive:true,force:true});
  }
