@@ -10,7 +10,7 @@ const DAY=86400000;
 const DAYS_PER_WEEK=7;
 function load():Option[]{try {const v=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(v)||v.some(o=>typeof o.name!=='string'||!Array.isArray(o.tickets)||o.tickets.some((t:Ticket)=>!Array.isArray(t.segments))))throw Error();return v;}catch{return [];}}
 const money=(n:number,c:string)=>new Intl.NumberFormat('en',{style:'currency',currency:c,maximumFractionDigits:0}).format(n);
-const date=(n:number)=>new Date(n).toLocaleDateString('en',{month:'short',day:'numeric',timeZone:'UTC'});
+const date=(n:number,calendar:boolean)=>new Date(n).toLocaleDateString('en',{weekday:calendar?'short':undefined,month:'short',day:'numeric',timeZone:'UTC'});
 function App(){
  const [options,setOptions]=useState<Option[]>(load),[editor,setEditor]=useState<{option:string,ticket:Ticket}|null>(null),[error,setError]=useState(''),[storageError,setStorageError]=useState(''),[zoom,setZoom]=useState(1),[siteText,setSiteText]=useState(''),[importNotice,setImportNotice]=useState('');
  const [calendar,setCalendar]=useState(()=>{
@@ -53,8 +53,8 @@ function App(){
   const width=calendarWidth??row.days*dayWidth;
   const columnWidth=calendar?`${100/row.days}%`:dayWidth;
   return <div className="board-row" key={index}>
-   <div className="axis"><div className="axis-label">Option</div><div className="day-axis" style={{width}}>
-    {Array.from({length:row.days},(_,i)=><div className="day-header" key={i} style={{width:columnWidth}}><strong>{date(row.start+i*DAY)}</strong>
+   <div className="axis"><div className="axis-label">{index===0&&'Option'}</div><div className="day-axis" style={{width}}>
+    {Array.from({length:row.days},(_,i)=><div className="day-header" key={i} style={{width:columnWidth}}><strong>{date(row.start+i*DAY,calendar)}</strong>
      <div className="hour-ruler">{Array.from({length:24},(_,hour)=>{
       const labelled=hour%(calendar?6:3)===0;
       return <span key={hour} style={{left:`${hour/24*100}%`}} className={labelled?'labelled-hour':''}>{labelled?String(hour).padStart(2,'0')+':00':''}</span>;

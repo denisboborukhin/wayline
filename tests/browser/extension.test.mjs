@@ -116,8 +116,13 @@ test('installed extension and static planner import without a scraper backend',{
    const dates=()=>rows.evaluateAll(elements=>elements.map(row=>[...row.querySelectorAll('.day-header strong')].map(day=>day.textContent)));
    assert.equal(await toggle.getAttribute('aria-pressed'),'false');
    assert.equal(await rows.count(),1);
+   assert.equal((await dates())[0][0],'Dec 21');
    await toggle.click();
-   assert.deepEqual(await dates(),[['Dec 21','Dec 22','Dec 23','Dec 24','Dec 25','Dec 26','Dec 27'],['Dec 28','Dec 29']]);
+   assert.deepEqual(await dates(),[
+    ['Mon, Dec 21','Tue, Dec 22','Wed, Dec 23','Thu, Dec 24','Fri, Dec 25','Sat, Dec 26','Sun, Dec 27'],
+    ['Mon, Dec 28','Tue, Dec 29'],
+   ]);
+   assert.deepEqual(await app.locator('.axis-label').allTextContents(),['Option','']);
    assert.deepEqual(await rows.evaluateAll(elements=>elements.map(row=>row.querySelectorAll('.day-note-box').length)),[7,2]);
    assert.ok(await app.locator('.scroll').evaluate(element=>element.scrollWidth===element.clientWidth));
    const overnight=app.getByRole('button',{name:/^OVERNIGHT:/});
