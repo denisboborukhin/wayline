@@ -95,7 +95,7 @@ test('installed extension and static planner import without a scraper backend',{
    await app.getByRole('button',{name:'Close editor',exact:true}).click();
    assert.ok(!requests.some(url=>url.includes('/api/')));assert.deepEqual(browserErrors,[]);
   });
-  await t.test('calendar wraps seven days, splits a flight across rows and shares saved notes with the timeline',async()=>{
+  await t.test('calendar groups each option into Monday-to-Sunday weeks and shares notes with the timeline',async()=>{
    const app=await context.newPage();
    const origin=`http://127.0.0.1:${server.address().port}`;
    await app.setViewportSize({width:1440,height:1000});
@@ -105,25 +105,37 @@ test('installed extension and static planner import without a scraper backend',{
      id,from:'TBS',to:'EVN',flight:id,departure,arrival,departureOffset:'+00:00',arrivalOffset:'+00:00',
     }]});
     localStorage.removeItem('wayline.view');
-    localStorage.setItem('wayline.v1',JSON.stringify([{id:'trip',name:'Trip',tickets:[
-     ticket('FIRST','2026-12-21T10:00','2026-12-21T11:00'),
-     ticket('OVERNIGHT','2026-12-27T23:00','2026-12-28T02:00'),
-    ]}]));
+    localStorage.setItem('wayline.v1',JSON.stringify([
+     {id:'trip',name:'Trip',tickets:[
+      ticket('FIRST','2026-12-22T10:00','2026-12-22T11:00'),
+      ticket('OVERNIGHT','2026-12-27T23:00','2026-12-28T02:00'),
+     ]},
+     {id:'later-trip',name:'Later trip',tickets:[ticket('LATER','2027-01-03T10:00','2027-01-03T11:00')]},
+    ]));
    });
    await app.reload();
    const toggle=app.getByRole('button',{name:'Calendar view',exact:true});
    const rows=app.locator('.board-row');
+   const groups=app.locator('.calendar-option');
    const dates=()=>rows.evaluateAll(elements=>elements.map(row=>[...row.querySelectorAll('.day-header strong')].map(day=>day.textContent)));
    assert.equal(await toggle.getAttribute('aria-pressed'),'false');
    assert.equal(await rows.count(),1);
-   assert.equal((await dates())[0][0],'Dec 21');
+   assert.equal((await dates())[0][0],'Dec 22');
    await toggle.click();
+   const secondWeek=['Mon, Dec 28','Tue, Dec 29','Wed, Dec 30','Thu, Dec 31','Fri, Jan 1','Sat, Jan 2','Sun, Jan 3'];
    assert.deepEqual(await dates(),[
     ['Mon, Dec 21','Tue, Dec 22','Wed, Dec 23','Thu, Dec 24','Fri, Dec 25','Sat, Dec 26','Sun, Dec 27'],
-    ['Mon, Dec 28','Tue, Dec 29'],
+    secondWeek,secondWeek,
    ]);
-   assert.deepEqual(await app.locator('.axis-label').allTextContents(),['Option','']);
-   assert.deepEqual(await rows.evaluateAll(elements=>elements.map(row=>row.querySelectorAll('.day-note-box').length)),[7,2]);
+   assert.deepEqual(await groups.evaluateAll(elements=>elements.map(group=>({
+    names:[...group.querySelectorAll('.option-label input')].map(input=>input.value),
+    weeks:group.querySelectorAll('.board-row').length,
+    flights:[...group.querySelectorAll('.flight-box')].map(button=>button.textContent),
+   }))),[
+    {names:['Trip'],weeks:2,flights:['FIRST','OVERNIGHT','OVERNIGHT']},
+    {names:['Later trip'],weeks:1,flights:['LATER']},
+   ]);
+   assert.deepEqual(await rows.evaluateAll(elements=>elements.map(row=>row.querySelectorAll('.day-note-box').length)),[7,7,7]);
    assert.ok(await app.locator('.scroll').evaluate(element=>element.scrollWidth===element.clientWidth));
    const overnight=app.getByRole('button',{name:/^OVERNIGHT:/});
    assert.equal(await overnight.count(),2);
@@ -135,11 +147,16 @@ test('installed extension and static planner import without a scraper backend',{
    await overnight.last().click();
    assert.equal(await app.getByLabel('Flight number').inputValue(),'OVERNIGHT');
    await app.getByRole('button',{name:'Close editor',exact:true}).click();
-   const note=app.getByRole('textbox',{name:'Notes for 2026-12-28'});
+   const noteName={name:'Notes for 2026-12-28',exact:true};
+   const note=groups.first().getByRole('textbox',noteName);
    await note.fill('Hotel check-in');
    await app.reload();
    assert.equal(await toggle.getAttribute('aria-pressed'),'true');
    assert.equal(await note.inputValue(),'Hotel check-in');
+   assert.equal(await groups.last().getByRole('textbox',noteName).inputValue(),'');
+   await groups.last().getByRole('button',{name:'+ Add ticket',exact:true}).click();
+   assert.match(await app.getByRole('dialog').innerText(),/Later trip/);
+   await app.getByRole('button',{name:'Close editor',exact:true}).click();
 
    await app.setViewportSize({width:390,height:844});
    assert.ok(await app.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -148,7 +165,7 @@ test('installed extension and static planner import without a scraper backend',{
    await toggle.click();
    assert.equal(await rows.count(),1);
    assert.equal(await overnight.count(),1);
-   assert.equal(await note.inputValue(),'Hotel check-in');
+   assert.equal(await rows.locator('.option-section').first().getByRole('textbox',noteName).inputValue(),'Hotel check-in');
    assert.deepEqual(browserErrors,[]);
    await app.close();
   });

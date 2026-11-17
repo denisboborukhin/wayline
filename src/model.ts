@@ -36,10 +36,18 @@ export function validate(t:Ticket):string {
  }
  return '';
 }
-export function bounds(options:Option[]){
+export function bounds(options:Option[],view:'timeline'|'calendar'='timeline'){
  const stamps=options.flatMap(o=>[...o.tickets.flatMap(t=>t.segments.flatMap(boardTimes)),...Object.keys({...o.dayNotes,...o.dayTexts}).map(day=>Date.parse(day+'T00:00Z'))]).filter(Number.isFinite);
  const start=stamps.length?Math.floor(Math.min(...stamps)/86400000)*86400000:Math.floor(Date.now()/86400000)*86400000;
- return {start,end:Math.max(start+3*86400000,stamps.length?Math.ceil(Math.max(...stamps)/86400000)*86400000:start)+86400000};
+ const last=stamps.length?Math.max(...stamps):start;
+ if(view==='calendar'){
+  const monday=(stamp:number)=>{
+   const day=new Date(stamp);
+   return (Math.floor(stamp/86400000)-(day.getUTCDay()+6)%7)*86400000;
+  };
+  return {start:monday(start),end:monday(last)+7*86400000};
+ }
+ return {start,end:Math.max(start+3*86400000,Math.ceil(last/86400000)*86400000)+86400000};
 }
 export function setDayText(option:Option,date:string,text:string):Option {
  // Retain empty strings: deleting everything must not regenerate the flight lines.

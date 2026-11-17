@@ -63,6 +63,8 @@ p { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .tools button:hover { background: #f1f3ed; }
 .tools button[aria-pressed="true"] { background: #e7eee1; border-color: #a9b8a3; color: #354a38; }
 .scroll { overflow: auto; scrollbar-color: #c9cdc3 #f4f5f0; scrollbar-width: thin; }
+.calendar-option + .calendar-option { border-top: 12px solid var(--line); }
+.calendar-option-header { background: #f1f3ed; }
 .calendar-board .board-row + .board-row { border-top: 8px solid var(--line); }
 .calendar-board .day-track { overflow: clip; }
 .calendar-board .day-note-box { padding-inline: 8px; }
@@ -79,7 +81,9 @@ p { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .option-flight-row { display: flex; }
 .option-label { width: var(--label-width); flex-shrink: 0; position: sticky; left: 0; background: #fff; z-index: 2; border-right: 1px solid var(--line); }
 .option-number { display: none; }
-.option-flight-row .option-label { padding: 6px 12px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-content: start; column-gap: 6px; row-gap: 2px; }
+.option-flight-row .option-label, .calendar-option-header .option-label { padding: 6px 12px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-content: start; column-gap: 6px; row-gap: 2px; }
+.calendar-option-header .option-label { padding: 10px 12px; background: inherit; border-right: 0; }
+.calendar-option-header .option-label input { font-size: 13px; }
 .option-label input { width: 100%; border: 0; border-radius: 2px; padding: 0; font-size: 11px; font-weight: 500; color: #303a2d; background: transparent; margin: 0; line-height: 16px; }
 .prices { font-size: 10px; margin: 0; line-height: 16px; font-variant-numeric: tabular-nums; }
 .prices small { font-size: 9px; color: #8c7853; }
