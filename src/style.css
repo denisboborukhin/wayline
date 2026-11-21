@@ -48,6 +48,7 @@ header {
 .local { font-size: 11px; color: var(--muted); }
 main { max-width: 1680px; margin: auto; padding: 46px 4% 30px; }
 .intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
+.intro-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 h1 { font-size: 30px; letter-spacing: -1.1px; font-weight: 500; margin: 0 0 9px; }
 p { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .intro p { margin: 0; }
