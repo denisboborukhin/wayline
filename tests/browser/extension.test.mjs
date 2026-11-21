@@ -101,6 +101,7 @@ test('installed extension and static planner import without a scraper backend',{
    const markdown=await readFile(await download.path(),'utf8');
    assert.match(markdown,/### Option 1\n\n#### December 2026\n\n\| Monday \| Tuesday \| Wednesday \| Thursday \| Friday \| Saturday \| Sunday \|/);
    assert.match(markdown,/^\| \*\*28\*\* \| \*\*29\*\* \| \*\*30\*\* \| \*\*31\*\* \|  \|  \|  \|\n\|  \|  \| Breakfast<br>Leave early<br>/m);
+   assert.equal(markdown.split('\n').filter(line=>line.startsWith('| **')).length,1);
    assert.match(markdown,/\| Option 1 \| RUB 50000\.00 \| Complete \|/);
    assert.ok(!requests.some(url=>url.includes('/api/')));assert.deepEqual(browserErrors,[]);
   });
