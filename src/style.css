@@ -61,7 +61,13 @@ p { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .tools > span { font-size: 11px; color: var(--muted); margin-right: 12px; }
 .tools button { font-size: 11px; padding: 4px 8px; background: transparent; }
 .tools button:hover { background: #f1f3ed; }
+.tools button[aria-pressed="true"] { background: #e7eee1; border-color: #a9b8a3; color: #354a38; }
 .scroll { overflow: auto; scrollbar-color: #c9cdc3 #f4f5f0; scrollbar-width: thin; }
+.calendar-option + .calendar-option { border-top: 12px solid var(--line); }
+.calendar-option-header { background: #f1f3ed; }
+.calendar-board .board-row + .board-row { border-top: 8px solid var(--line); }
+.calendar-board .day-track { overflow: clip; }
+.calendar-board .day-note-box { padding-inline: 8px; }
 .axis { display: flex; height: 45px; background: #f7f8f4; border-block: 1px solid var(--line); }
 .axis-label { width: var(--label-width); flex-shrink: 0; font-size: 11px; padding: 13px 16px; color: var(--muted); position: sticky; left: 0; z-index: 3; background: #f7f8f4; }
 .day-axis { display: flex; flex-shrink: 0; }
@@ -75,7 +81,9 @@ p { color: var(--muted); font-size: 13px; line-height: 1.6; }
 .option-flight-row { display: flex; }
 .option-label { width: var(--label-width); flex-shrink: 0; position: sticky; left: 0; background: #fff; z-index: 2; border-right: 1px solid var(--line); }
 .option-number { display: none; }
-.option-flight-row .option-label { padding: 6px 12px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-content: start; column-gap: 6px; row-gap: 2px; }
+.option-flight-row .option-label, .calendar-option-header .option-label { padding: 6px 12px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-content: start; column-gap: 6px; row-gap: 2px; }
+.calendar-option-header .option-label { padding: 10px 12px; background: inherit; border-right: 0; }
+.calendar-option-header .option-label input { font-size: 13px; }
 .option-label input { width: 100%; border: 0; border-radius: 2px; padding: 0; font-size: 11px; font-weight: 500; color: #303a2d; background: transparent; margin: 0; line-height: 16px; }
 .prices { font-size: 10px; margin: 0; line-height: 16px; font-variant-numeric: tabular-nums; }
 .prices small { font-size: 9px; color: #8c7853; }
@@ -151,7 +159,7 @@ legend { font-size: 11px; color: #727d66; padding: 0 7px; }
   .board-toolbar { gap: 12px; align-items: flex-start; flex-direction: column; padding: 14px; }
   .tools > span { margin-right: 6px; }
   .board-footer { padding: 12px 14px; }
-  .board-footer > span:last-child { display: none; }
+  .board-footer > span + span { display: none; }
   .option-flight-row .option-label { padding-inline: 8px; grid-template-columns: 1fr; }
   .day-notes-label { padding-left: 10px; }
   .notes { flex-direction: column; gap: 4px; }
