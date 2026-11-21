@@ -99,7 +99,8 @@ test('installed extension and static planner import without a scraper backend',{
    ]);
    assert.equal(download.suggestedFilename(),'travel-plans.md');
    const markdown=await readFile(await download.path(),'utf8');
-   assert.match(markdown,/\| Option 1 \| 2026-12-30 \| Breakfast<br>Leave early<br>/);
+   assert.match(markdown,/### Option 1\n\n\| Monday \| Tuesday \| Wednesday \| Thursday \| Friday \| Saturday \| Sunday \|/);
+   assert.match(markdown,/^\| \*\*2026-12-28\*\* \| \*\*2026-12-29\*\* \| \*\*2026-12-30\*\*<br>Breakfast<br>Leave early<br>.*\| \*\*2027-01-03\*\* \|$/m);
    assert.match(markdown,/\| Option 1 \| RUB 50000\.00 \| Complete \|/);
    assert.ok(!requests.some(url=>url.includes('/api/')));assert.deepEqual(browserErrors,[]);
   });

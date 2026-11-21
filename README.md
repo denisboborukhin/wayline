@@ -35,7 +35,7 @@ Each trip option has a compact flight timeline and one fully editable text box p
 
 Dates appear once in the top ruler. Flight boxes align to each endpoint's local airport date and time, so an early-morning departure stays on its departure day. Bar widths represent differences between local clocks, not actual flight duration across time zones. A left arrow marks flights whose arrival is earlier on the local calendar or clock; the bar spans both local endpoints. Hover a box for its actual timezone-aware duration and endpoint offsets. Independent tickets stack without connections between them. Notes save automatically by option and date; days containing saved text stay visible if flights are removed. Click blocks or incomplete cards to edit. Add return and intermediate tickets to the same option. Prices apply to whole tickets; currencies are totaled separately. Plans stay in localStorage for this browser and origin; clearing browser data removes them.
 
-**Export Markdown** downloads a table of nonempty day boxes, including any flight lines shown in them. A separate table lists known ticket totals by option and currency and flags missing prices.
+**Export Markdown** downloads one Monday–Sunday calendar table per option. Each week includes all seven dates, with day notes and any flight lines shown in their boxes. A separate table lists known ticket totals by option and currency and flags missing prices.
 
 ## Publishing and deployment
 
