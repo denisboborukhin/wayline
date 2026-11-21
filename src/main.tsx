@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import {blankSegment,blankTicket,bounds,id,parseLink,times,total,validate,setDayText,type Option,type Ticket,type Segment} from './model';
 import {DayTimeline} from './DayTimeline';
 import {parseFlightImport} from './flight-import';
+import {exportMarkdown} from './markdown-export';
 import './style.css';
 const KEY='wayline.v1';
 const VIEW_KEY='wayline.view';
@@ -22,6 +23,16 @@ function App(){
  }
  function update(next:Option[]){setOptions(next);try{localStorage.setItem(KEY,JSON.stringify(next));setStorageError('');}catch{setStorageError('Could not save to this browser. Your changes are only kept until this page closes.');}}
  function addOption(){const o={id:id(),name:`Option ${options.length+1}`,tickets:[]};update([...options,o]);}
+ function downloadMarkdown(){
+  const url=URL.createObjectURL(new Blob([exportMarkdown(options)],{type:'text/markdown;charset=utf-8'}));
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='travel-plans.md';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+ }
  function open(option:string,ticket=blankTicket()){setError('');setSiteText('');setImportNotice('');setEditor({option,ticket:structuredClone(ticket)});}
  function readLink(){
   if(!editor)return;
@@ -70,7 +81,11 @@ function App(){
    summary={calendar?undefined:optionSummary(o,index)}/>;
  }
  return <><header><a className="brand" href="./">wayline<span className="brand-divider"/> <small>Travel planner</small></a><span className="local">Saved on this device</span></header>
- <main><div className="intro"><div><h1>Flight plans</h1><p>Compare flight options and plan your days.</p></div><button className="primary" onClick={addOption}>+ Add option</button></div>
+ <main><div className="intro"><div><h1>Flight plans</h1><p>Compare flight options and plan your days.</p></div>
+ <div className="intro-actions">
+  <button type="button" onClick={downloadMarkdown} disabled={!options.length}>Export Markdown</button>
+  <button className="primary" onClick={addOption}>+ Add option</button>
+ </div></div>
  {storageError&&<p role="alert" className="error">{storageError}</p>}
  <section className="board"><div className="board-toolbar"><div><strong>Itineraries</strong><span className="count">{options.length} {options.length===1?'option':'options'}</span></div><div className="tools"><span>Local airport times</span>
  <button type="button" aria-pressed={calendar} onClick={toggleCalendar}>Calendar view</button>
