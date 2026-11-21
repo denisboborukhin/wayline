@@ -8,28 +8,32 @@ const ticket:Ticket={id:'flight',url:'',price:'120.50',currency:'EUR',segments:[
  departure:'2026-12-21T18:00',arrival:'2026-12-21T19:30',departureOffset:'+01:00',arrivalOffset:'+01:00',
 }]};
 
-test('exports complete Monday–Sunday weeks for each option, including empty weeks',()=>{
+test('exports whole months with separate rows for dates and notes',()=>{
  const md=exportMarkdown([
   {id:'first',name:'Train | flight',tickets:[ticket],
    dayNotes:{'2026-12-21':'Check in','2026-12-23':'Old note'},
-   dayTexts:{'2026-12-24':'Plane *or* train | decide\r\nMeet <Alex> at C:\\trips','2026-12-23':'','2026-12-20':'Pack','2027-01-04':'Unpack'}},
+   dayTexts:{'2026-12-24':'Plane *or* train | decide\r\nMeet <Alex> at C:\\trips','2026-12-23':'','2026-12-20':'Pack','2027-02-01':'Unpack'}},
   {id:'second',name:'Other trip',tickets:[ticket],dayTexts:{'2026-12-21':''}},
  ]);
  const [first,second]=md.split(/^### /m).slice(1);
- assert.ok(first.startsWith('Train \\| flight\n\n| Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday |'));
- const weeks=first.split('\n').filter(line=>line.startsWith('| **'));
- assert.deepEqual(weeks.map(line=>[...line.matchAll(/\*\*(\d{4}-\d{2}-\d{2})\*\*/g)].map(match=>match[1])),[
-  ['2026-12-14','2026-12-15','2026-12-16','2026-12-17','2026-12-18','2026-12-19','2026-12-20'],
-  ['2026-12-21','2026-12-22','2026-12-23','2026-12-24','2026-12-25','2026-12-26','2026-12-27'],
-  ['2026-12-28','2026-12-29','2026-12-30','2026-12-31','2027-01-01','2027-01-02','2027-01-03'],
-  ['2027-01-04','2027-01-05','2027-01-06','2027-01-07','2027-01-08','2027-01-09','2027-01-10'],
- ]);
- assert.match(weeks[0],/\*\*2026-12-20\*\*<br>Pack/);
- assert.ok(weeks[1].includes('**2026-12-21**<br>Paris: departure at 18:00<br>Nice: arrival at 19:30<br><br>Check in'));
- assert.ok(weeks[1].includes('**2026-12-23** | **2026-12-24**<br>Plane \\*or\\* train \\| decide<br>Meet &#60;Alex&#62; at C:&#92;trips'));
- assert.ok(!weeks[2].includes('<br>'));
- assert.ok(!second.includes('**2026-12-21**<br>'));
- assert.equal(second.split('\n').filter(line=>line.startsWith('| **')).length,1);
+ assert.ok(first.startsWith('Train \\| flight\n\n#### December 2026\n\n| Monday | Tuesday | Wednesday | Thursday | Friday | Saturday | Sunday |'));
+ const months=first.split(/^#### /m).slice(1);
+ assert.deepEqual(months.map(month=>month.split('\n')[0]),['December 2026','January 2027','February 2027']);
+ const rows=(month:string)=>month.split('\n').filter(line=>line.startsWith('|')).slice(2);
+ const [december,january,february]=months.map(rows);
+ for(const [weeks,days] of [[december,31],[january,31],[february,28]] as const){
+  const dates=weeks.filter((_,i)=>i%2===0).flatMap(row=>[...row.matchAll(/\*\*(\d+)\*\*/g)].map(match=>Number(match[1])));
+  assert.deepEqual(dates,Array.from({length:days},(_,i)=>i+1));
+ }
+ assert.equal(december[0],'|  | **1** | **2** | **3** | **4** | **5** | **6** |');
+ assert.equal(december[5],'|  |  |  |  |  |  | Pack |');
+ assert.equal(december[6],'| **21** | **22** | **23** | **24** | **25** | **26** | **27** |');
+ assert.equal(december[7],'| Paris: departure at 18:00<br>Nice: arrival at 19:30<br><br>Check in |  |  | Plane \\*or\\* train \\| decide<br>Meet &#60;Alex&#62; at C:&#92;trips |  |  |  |');
+ assert.equal(january[0],'|  |  |  |  | **1** | **2** | **3** |');
+ assert.ok(january.filter((_,i)=>i%2===1).every(row=>row==='|  |  |  |  |  |  |  |'));
+ assert.equal(february[1],'| Unpack |  |  |  |  |  |  |');
+ assert.doesNotMatch(second,/departure at 18:00/);
+ assert.deepEqual([...second.matchAll(/^#### (.*)$/gm)].map(match=>match[1]),['December 2026']);
 });
 
 test('lists known ticket totals by option and currency and flags missing prices',()=>{

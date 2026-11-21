@@ -36,10 +36,16 @@ export function validate(t:Ticket):string {
  }
  return '';
 }
-export function bounds(options:Option[],view:'timeline'|'calendar'='timeline'){
+export function bounds(options:Option[],view:'timeline'|'calendar'|'month'='timeline'){
  const stamps=options.flatMap(o=>[...o.tickets.flatMap(t=>t.segments.flatMap(boardTimes)),...Object.keys({...o.dayNotes,...o.dayTexts}).map(day=>Date.parse(day+'T00:00Z'))]).filter(Number.isFinite);
  const start=stamps.length?Math.floor(Math.min(...stamps)/86400000)*86400000:Math.floor(Date.now()/86400000)*86400000;
  const last=stamps.length?Math.max(...stamps):start;
+ if(view==='month'){
+  const firstMonth=new Date(start);
+  const lastMonth=new Date(last);
+  lastMonth.setUTCHours(0,0,0,0);
+  return {start:firstMonth.setUTCDate(1),end:lastMonth.setUTCMonth(lastMonth.getUTCMonth()+1,1)};
+ }
  if(view==='calendar'){
   const monday=(stamp:number)=>{
    const day=new Date(stamp);
